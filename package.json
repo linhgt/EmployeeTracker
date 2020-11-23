@@ -1,0 +1,23 @@
+{
+  "name": "employeetracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linhgt/EmployeeTracker.git"
+  },
+  "author": "Linh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/linhgt/EmployeeTracker/issues"
+  },
+  "homepage": "https://github.com/linhgt/EmployeeTracker#readme",
+  "dependencies": {
+    "inquirer": "^7.3.3",
+    "nodemon": "^2.0.6"
+  }
+}

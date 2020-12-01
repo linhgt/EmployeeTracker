@@ -12,12 +12,15 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err){
     if(err) throw err;
+    //Start the connection
     start();
 });
 
+//Handle main menu's actions
 function start(){
     inquirer.prompt([
         {
+            //Initial menu
             type:"list",
             message:"What would you like to do?",
             name:"action",
@@ -34,13 +37,14 @@ function start(){
         }
     ]).then(answer => {
             switch(answer.action){
-                case "View employee":
+                case "View all employees":
                     break;
-                case "View department":
+                case "View all departments":
                     break;
-                case "View role":
+                case "View all roles":
                     break;
                 case "Add employee":
+                    addEmployee();
                     break;
                 case "Add department":
                     break;
@@ -49,8 +53,54 @@ function start(){
                 case "Update role":
                     break;
                 case "Exit":
+                    //End the connection
                     connection.end();
                     break;
             }
     });
 };
+
+//View all employees
+function viewEmployee(){
+    var query = "SELECT * FROM employee"
+    connection.query(query, function(err, res){
+        for(let i = 0; i < res.length; i++)
+        {
+
+        }
+    });
+}
+
+//Add a new employee to the database
+function addEmployee(){
+    inquirer.prompt([
+        {
+            //First name
+            type:"input",
+            name:"firstName",
+            message:"First name of the employee:"
+        },
+        {
+            //Last name
+            type:"input",
+            name:"lastName",
+            message:"Last name of the employee:"
+        },
+        {
+            //Role
+            type:"input",
+            name:"role",
+            message:"Role of the employee:"
+        },
+        {
+            //Manager
+            type:"input",
+            name:"manager",
+            message:"Manager of the employee:",
+            when: (answer) => answer.role !== 'manager'
+        }
+    ]).then(answer => {
+        console.log("test");
+        start();
+    });
+}

@@ -199,5 +199,27 @@ function insertEmployee(firstName, lastName, roleId, managerId)
 
 //Add new department into the database
 function addDepartment(){
-
+    inquirer.prompt([
+        {
+            type:"input",
+            name:"department",
+            message:"What is the name of the department?"
+        }
+    ]).then(answer =>{
+        //If users enter a valid input
+        if(answer.department !== "")
+        {
+            let Query = "INSERT INTO department (name) VALUES (?);";
+            connection.query(Query, [answer.department], function(err, res){
+                if (err) throw err;
+                console.log(`\nSuccessfully inserted ${answer.department}\n!`);
+                start();
+            });
+        }
+        else
+        {
+            console.log("\nPlease specify a department name!\n");
+            start();
+        }
+    });
 }

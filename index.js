@@ -1,4 +1,4 @@
-var inquirer = require("inquirer")
+var inquirer = require("inquirer");
 var mysql = require("mysql");
 
 //Create mysql connection
@@ -38,6 +38,7 @@ function start(){
     ]).then(answer => {
             switch(answer.action){
                 case "View all employees":
+                    viewEmployees();
                     break;
                 case "View all departments":
                     break;
@@ -50,8 +51,9 @@ function start(){
                     addDepartment();
                     break;
                 case "Add role":
+                    addRole();
                     break;
-                case "Update role":
+                case "Update employee role":
                     break;
                 case "Exit":
                     //End the connection
@@ -223,3 +225,55 @@ function addDepartment(){
         }
     });
 }
+
+//Add new role to the database
+function addRole(){
+    let departmentChoices = [];     //Store department names
+    let departments = {};           //Store department IDs
+    let departmentId;               //Id for query
+
+    let roleQuery = "SELECT * FROM department;";
+    connection.query(roleQuery, function(err, res){
+        if (err) throw err;
+        //Store the name of the department temporarily
+        for(let i = 0; i < res.length; i++)
+        {
+            let obj = res[i];
+            departmentChoices.push(obj.name);
+            departments[obj.name] = obj.id;
+        }
+        inquirer.prompt([
+            {
+                type:"list",
+                name:"department",
+                message:"Which department is this role belonged to?",
+                choices:departmentChoices
+            },
+            {
+                type:"input",
+                name:"title",
+                message:"What's the title of the role?"
+            },
+            {
+                type:"input",
+                name:"salary",
+                message:"What's the salary for this role?"
+            }
+        ]).then(answer =>{
+            //Retrieve department id
+            departmentId = departments[answer.department];
+
+            let Query = "INSERT INTO roles (title, salary, department_id) VALUES(?, ?, ?);";
+            connection.query(Query, [answer.title, answer.salary, departmentId], function(error, response){
+                if(error) throw error;
+                console.log(`\nSuccessfull inserted ${answer.title}!\n`);
+                start();
+            })
+        });
+    });
+};
+
+function viewEmployees(){
+    
+};
+

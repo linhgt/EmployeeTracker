@@ -47,6 +47,7 @@ function start(){
                     addEmployee();
                     break;
                 case "Add department":
+                    addDepartment();
                     break;
                 case "Add role":
                     break;
@@ -191,7 +192,12 @@ function insertEmployee(firstName, lastName, roleId, managerId)
         if (err){
             throw err;
         }
-        console.log("Successfully inserted!");
+        console.log(`\nSuccessfully inserted ${firstName} ${lastName}!\n`);
         start();
     });
+}
+
+//Add new department into the database
+function addDepartment(){
+
 }

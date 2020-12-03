@@ -1,5 +1,6 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var consoleTable = require("console.table");
 
 //Create mysql connection
 var connection = mysql.createConnection({
@@ -25,9 +26,9 @@ function start(){
             message:"What would you like to do?",
             name:"action",
             choices:[
-                        "View employee", 
-                        "View department", 
-                        "View role", 
+                        "View all employees", 
+                        "View all departments", 
+                        "View all roles", 
                         "Add employee", 
                         "Add department", 
                         "Add role", 
@@ -41,6 +42,7 @@ function start(){
                     viewEmployees();
                     break;
                 case "View all departments":
+                    viewDepartments();
                     break;
                 case "View all roles":
                     break;
@@ -275,6 +277,19 @@ function addRole(){
 
 //View all employees
 function viewEmployees(){
-    start();
+    let Query = "SELECT E1.id, E1.first_name, E1.last_name, title, name AS department, salary, concat(E2.first_name, ' ', E2.last_name) AS manager ";
+        Query += "FROM employee AS E1 LEFT JOIN roles ON E1.role_id = roles.id LEFT JOIN "
+        Query += "department ON roles.department_id = department.id LEFT JOIN employee AS E2 ON E1.manager_id = E2.id;"
+
+    //let Query = "SELECT E1.id, E1.first_name, E1.last_name, title, name AS department, salary, concat(E2.first_name, ' ', E2.last_name) AS manager FROM employee AS E1 LEFT JOIN roles ON E1.role_id = roles.id LEFT JOIN department ON roles.department_id = department.id LEFT JOIN employee AS E2 ON E1.manager_id = E2.id;";
+
+    //let Query2 = "SELECT e.id, e.first_name, e.last_name, r.title as role, d.name AS department, r.salary, concat(e2.first_name, SPACE(1), e2.last_name) AS manager FROM employee e LEFT JOIN employee e2 ON (e.manager_id = e2.id OR e.manager_id = null) LEFT JOIN role r ON (e.role_id = r.id or e.role_id = null) LEFT JOIN department d ON (r.department_id = d.id OR r.department_id = null)";
+
+    connection.query(Query, function (err, res){
+        if (err) throw err;
+        console.log("\r\n");
+        console.table(res);
+        start();
+    });
 };
 

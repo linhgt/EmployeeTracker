@@ -32,7 +32,7 @@ function start(){
                         "Add employee", 
                         "Add department", 
                         "Add role", 
-                        "Update roles",
+                        "Update employee role",
                         "Exit"
                     ]
         }
@@ -45,6 +45,7 @@ function start(){
                     viewDepartments();
                     break;
                 case "View all roles":
+                    viewRoles();
                     break;
                 case "Add employee":
                     addEmployee();
@@ -56,6 +57,7 @@ function start(){
                     addRole();
                     break;
                 case "Update employee role":
+                    updateEmployeeRoles();
                     break;
                 case "Exit":
                     //End the connection
@@ -64,17 +66,6 @@ function start(){
             }
     });
 };
-
-//View all employees
-function viewEmployee(){
-    var query = "SELECT * FROM employee"
-    connection.query(query, function(err, res){
-        for(let i = 0; i < res.length; i++)
-        {
-
-        }
-    });
-}
 
 //Add a new employee to the database
 function addEmployee(){
@@ -293,3 +284,70 @@ function viewEmployees(){
     });
 };
 
+//View all departments
+function viewDepartments(){
+    let Query = "SELECT * FROM department;";
+    
+    connection.query(Query, function(err, res){
+        if (err) throw err;
+        console.log("\r\n");
+        console.table(res);
+        start();
+    }); 
+};
+
+//View all roles
+function viewRoles(){
+    let Query = "SELECT roles.id, title, salary, name AS department FROM roles LEFT JOIN department on roles.department_id = department.id;";
+    
+    connection.query(Query, function(err, res){
+        if (err) throw err;
+        console.log("\r\n");
+        console.table(res);
+        start();
+    });
+};
+
+//Update employee's role
+function updateEmployeeRoles(){
+    let roles = [];
+    let roleId = {};
+    let roleQuery = "SELECT id, title FROM roles;"
+    
+    connection.query(roleQuery, function(err, res){
+        if (err) throw err;
+        for(let i = 0; i < res.length; i++)
+        {
+            roles.push(res[i].title);
+            roleId[res[i].title] = res[i].id;
+        }
+
+        inquirer.prompt([
+            {    
+                type:"input",
+                name:"employee",
+                message:"What's the name of the employee?"
+            },
+            {
+                type:"list",
+                name:"newRole",
+                message:"What is the new role?",
+                choices:roles
+            }
+        ]).then(answer => {
+            update(answer, roleId);
+        });
+    });
+};
+
+//Update role
+function update(answer, roleId){
+    let updateQuery = "UPDATE employee SET role_id = ? WHERE concat(first_name, ' ',last_name) like ?;";
+
+    connection.query(updateQuery, [roleId[answer.newRole], answer.employee], function(err, res){
+        if (err) throw err;
+        console.log("\r\n");
+        console.log(`Successfully updated role for ${answer.employee}`);
+        start();
+    });
+}

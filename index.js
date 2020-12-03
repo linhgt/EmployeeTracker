@@ -33,6 +33,7 @@ function start(){
                         "Add department", 
                         "Add role", 
                         "Update employee role",
+                        "Update employee manager",
                         "Exit"
                     ]
         }
@@ -58,6 +59,9 @@ function start(){
                     break;
                 case "Update employee role":
                     updateEmployeeRoles();
+                    break;
+                case "Update employee manager":
+                    updateManager();
                     break;
                 case "Exit":
                     //End the connection
@@ -351,3 +355,39 @@ function update(answer, roleId){
         start();
     });
 }
+
+//Update employee manager
+function updateManager(){
+    inquirer.prompt([
+        {
+            type:"input",
+            name:"employee",
+            message:"Which employee do you want to update manager?"
+        },
+        {
+            type:"input",
+            name:"manager",
+            message:"Who is the new manager?"
+        }
+    ]).then(answer => {
+        let managerId;      //New manager id
+        let managerQuery = "SELECT id FROM employee WHERE concat(first_name, ' ',last_name) like ?;";
+
+        connection.query(managerQuery, [answer.manager], function(err, res){
+            if(err) throw err;
+            managerId = res[0].id;
+            updateManagerId(answer.employee, managerId);
+        });
+    });
+}
+
+function updateManagerId(employee, managerId){
+    let employeeQuery = "UPDATE employee set manager_id = ? WHERE concat(first_name, ' ',last_name) like ?;";
+
+    connection.query(employeeQuery, [managerId, employee], function(err, res){
+        if (err) throw err;
+        console.log("\r\n");
+        console.log(`Success! ${employee}'s manager has been updated`);
+        start();
+    });
+};

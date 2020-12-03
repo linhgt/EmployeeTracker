@@ -164,7 +164,7 @@ function findManager(firstName, lastName, roleId, manager){
     {
         //Split manager name into first name and last name
         let managerArr = manager.split(" ");
-        let managerQuery = "SELECT id FROM employye WHERE first_name = ? AND last_name = ?;";
+        let managerQuery = "SELECT id FROM employee WHERE first_name = ? AND last_name = ?;";
         connection.query(managerQuery, [managerArr[0], managerArr[1]], function(err, res){
             if (err){
                 throw err;
@@ -273,7 +273,8 @@ function addRole(){
     });
 };
 
+//View all employees
 function viewEmployees(){
-    
+    start();
 };
 

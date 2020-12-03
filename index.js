@@ -34,6 +34,7 @@ function start(){
                         "Add role", 
                         "Update employee role",
                         "Update employee manager",
+                        "Delete employee",
                         "Exit"
                     ]
         }
@@ -62,6 +63,9 @@ function start(){
                     break;
                 case "Update employee manager":
                     updateManager();
+                    break;
+                case "Delete employee":
+                    deleteEmployee();
                     break;
                 case "Exit":
                     //End the connection
@@ -370,12 +374,15 @@ function updateManager(){
             message:"Who is the new manager?"
         }
     ]).then(answer => {
-        let managerId;      //New manager id
+        let managerId = null;      //New manager id
         let managerQuery = "SELECT id FROM employee WHERE concat(first_name, ' ',last_name) like ?;";
 
         connection.query(managerQuery, [answer.manager], function(err, res){
             if(err) throw err;
-            managerId = res[0].id;
+            if(res.length !== 0)
+            {
+                managerId = res[0].id;
+            }
             updateManagerId(answer.employee, managerId);
         });
     });
@@ -384,6 +391,8 @@ function updateManager(){
 function updateManagerId(employee, managerId){
     let employeeQuery = "UPDATE employee set manager_id = ? WHERE concat(first_name, ' ',last_name) like ?;";
 
+    //If managerId is null, then the new manager is not valid
+    //Table is still updated, but the manager will be null
     connection.query(employeeQuery, [managerId, employee], function(err, res){
         if (err) throw err;
         console.log("\r\n");
@@ -391,3 +400,50 @@ function updateManagerId(employee, managerId){
         start();
     });
 };
+
+//Delete an employee
+function deleteEmployee(){
+    inquirer.prompt([
+        {
+            type:"input",
+            name:"employee",
+            message:"Who do you want to delete?"
+        }
+    ]).then(answer =>{
+        //let Query = "DELETE FROM employee WHERE concat(first_name, ' ', last_name) like ?);";
+        let Query = "SELECT id FROM employee WHERE concat(first_name, ' ', last_name) like ?;"
+
+        //Retrieve the employee's id first before deleting
+        connection.query(Query, [answer.employee], function(err,res){
+            if(err) throw err;
+            deleteEmp(res[0].id, answer.employee);
+        });
+    });
+};
+
+function deleteEmp(employeeId, employee)
+{
+    //Delete the employee from the database
+    let Query = "DELETE FROM employee WHERE concat(first_name, ' ', last_name) like ?;";
+    connection.query(Query, [employee], function(err, res){
+        if (err) throw err;
+        if(res.affectedRows == 0)
+        {
+            console.log("\r\n");
+            console.log("No record deleted for there is no such employee\n");
+        }
+        else
+        {
+            console.log("\r\n");
+            console.log(`Successfully deleted ${employee}`);
+            start();
+        }
+    });
+
+    //Update the manager of any employee that has deleted employee as the manager
+    let managerQuery = "UPDATE employee SET manager_id = null WHERE manager_id = ?;";
+    connection.query(managerQuery, [employeeId], function(err,res){
+        if (err) throw err;
+    });
+}
+

@@ -35,6 +35,7 @@ function start(){
                         "Update employee role",
                         "Update employee manager",
                         "Delete employee",
+                        "Delete role",
                         "Exit"
                     ]
         }
@@ -66,6 +67,9 @@ function start(){
                     break;
                 case "Delete employee":
                     deleteEmployee();
+                    break;
+                case "Delete role":
+                    deleteRole();
                     break;
                 case "Exit":
                     //End the connection
@@ -324,6 +328,8 @@ function updateEmployeeRoles(){
     
     connection.query(roleQuery, function(err, res){
         if (err) throw err;
+
+        //Iterate through the roles
         for(let i = 0; i < res.length; i++)
         {
             roles.push(res[i].title);
@@ -379,6 +385,7 @@ function updateManager(){
 
         connection.query(managerQuery, [answer.manager], function(err, res){
             if(err) throw err;
+            //Check if anyone has this employee as a manager
             if(res.length !== 0)
             {
                 managerId = res[0].id;
@@ -447,3 +454,60 @@ function deleteEmp(employeeId, employee)
     });
 }
 
+//Delete role
+function deleteRole(){
+    let roleId = {};        //Store each roles id
+    let roles = [];         //Store the names of the roles
+
+    let roleQuery = "SELECT id, title FROM roles;";
+
+    connection.query(roleQuery, function(err, res){
+        if (err) throw err;
+
+        //Iterate through the roles
+        for (let i = 0; i < res.length; i++)
+        {
+            roles.push(res[i].title);
+            roleId[res[i].title] = res[i].id;
+        };
+
+        inquirer.prompt([
+            {
+                type:"list",
+                name:"role",
+                message:"which role you want to remove?",
+                choices:roles
+            }
+        ]).then(answer =>{
+            //Update any employees who has this role first
+            updateEmpRole(answer.role, roleId[answer.role]);
+        });
+    });
+};
+
+function updateEmpRole(role, roleId){
+    //Update roles of any employees who has this role
+    let updateEmpRoleQuery = "UPDATE employee SET role_id = null WHERE role_id = ?;";
+    connection.query(updateEmpRoleQuery, [roleId], function(err,res){
+        if (err) throw err;
+        deleteR(role, roleId);
+    });
+};
+
+function deleteR(role, roleId){
+    let deleteRoleQuery = "DELETE FROM roles WHERE id = ?;";
+
+    //Remove role from the database
+    connection.query(deleteRoleQuery, [roleId], function(err, res){
+        if (err) throw err;
+        if(res.affectedRows == 0)
+        {
+            console.log("\nNo such role exists.\n");
+        }
+        else
+        {
+            console.log(`\nSuccessfully delete ${role}\n`);
+        }
+        start();
+    });
+}

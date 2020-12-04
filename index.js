@@ -36,6 +36,7 @@ function start(){
                         "Update employee manager",
                         "Delete employee",
                         "Delete role",
+                        "Delete department",
                         "Exit"
                     ]
         }
@@ -70,6 +71,9 @@ function start(){
                     break;
                 case "Delete role":
                     deleteRole();
+                    break;
+                case "Delete department":
+                    deleteDepartment();
                     break;
                 case "Exit":
                     //End the connection
@@ -480,19 +484,19 @@ function deleteRole(){
             }
         ]).then(answer =>{
             //Update any employees who has this role first
-            updateEmpRole(answer.role, roleId[answer.role]);
+            deleteR(answer.role, roleId[answer.role]);
         });
     });
 };
 
-function updateEmpRole(role, roleId){
+/*function updateEmpRole(role, roleId){
     //Update roles of any employees who has this role
     let updateEmpRoleQuery = "UPDATE employee SET role_id = null WHERE role_id = ?;";
     connection.query(updateEmpRoleQuery, [roleId], function(err,res){
         if (err) throw err;
         deleteR(role, roleId);
     });
-};
+};*/
 
 function deleteR(role, roleId){
     let deleteRoleQuery = "DELETE FROM roles WHERE id = ?;";
@@ -509,5 +513,47 @@ function deleteR(role, roleId){
             console.log(`\nSuccessfully delete ${role}\n`);
         }
         start();
+    });
+}
+
+//Delete department
+function deleteDepartment(){
+    let departments = [];       //Store the department names
+    let departmentId = {};      //Store the department IDs
+
+    let Query = "SELECT * FROM department;";
+
+    connection.query(Query, function(err, res){
+        if (err) throw err;
+
+        //Iterate through the departments
+        for(let i = 0; i < res.length; i++)
+        {
+            departments.push(res[i].name);
+            departmentId[res[i].name] = res[i].id;
+        }
+
+        inquirer.prompt([
+            {
+                type:"list",
+                name:"department",
+                message:"Which department you want to remove?",
+                choices:departments
+            }
+        ]).then(answer =>{
+            //Update any roles in this department
+            updateRoleDept(answer.department, departmentId[answer.department]);
+        });
+    });
+}
+
+//Update any roles in this department
+function updateRoleDept(department, departmentId)
+{
+    //Remove roles associated with the deleted department
+    let roleQuery = "DELETE FROM roles WHERE department_id = ?;";
+    connection.query(roleQuery, [departmentId], function(err,res){
+        if (err) throw err;
+        console.log(`Successfully removed ${department}`);
     });
 }

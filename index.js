@@ -134,6 +134,7 @@ function addEmployee(){
             if (err){
                 throw err;
             }
+            console.log(res);
             roleId = res[0].id;
             //function to retrieve managerId
             findManager(answer.firstName, answer.lastName, roleId, answer.manager);
@@ -565,6 +566,7 @@ function deleteDept(department, departmentId)
     connection.query(roleQuery, [departmentId], function(err,res){
         if (err) throw err;
         console.log(`\r\nSuccessfully removed ${department}!\n`);
+        start();
     });
 }
 

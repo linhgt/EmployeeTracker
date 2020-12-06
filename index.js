@@ -28,7 +28,8 @@ function start(){
             choices:[
                         "View all employees", 
                         "View all departments", 
-                        "View all roles", 
+                        "View all roles",
+                        "View employees by manager", 
                         "Add employee", 
                         "Add department", 
                         "Add role", 
@@ -50,6 +51,9 @@ function start(){
                     break;
                 case "View all roles":
                     viewRoles();
+                    break;
+                case "View employees by manager":
+                    viewEmpByMnger();
                     break;
                 case "Add employee":
                     addEmployee();
@@ -406,8 +410,14 @@ function updateManagerId(employee, managerId){
     //Table is still updated, but the manager will be null
     connection.query(employeeQuery, [managerId, employee], function(err, res){
         if (err) throw err;
-        console.log("\r\n");
-        console.log(`Success! ${employee}'s manager has been updated`);
+        if(res.affectedRows == 0)
+        {
+            console.log("\r\nNo such employee exists\n");
+        }
+        else{
+            console.log("\r\n");
+            console.log(`Success! ${employee}'s manager has been updated`);
+        }
         start();
     });
 };
@@ -541,19 +551,48 @@ function deleteDepartment(){
                 choices:departments
             }
         ]).then(answer =>{
-            //Update any roles in this department
-            updateRoleDept(answer.department, departmentId[answer.department]);
+            //Delete the department
+            deleteDept(answer.department, departmentId[answer.department]);
         });
     });
 }
 
-//Update any roles in this department
-function updateRoleDept(department, departmentId)
+//Delete the department
+function deleteDept(department, departmentId)
 {
     //Remove roles associated with the deleted department
     let roleQuery = "DELETE FROM roles WHERE department_id = ?;";
     connection.query(roleQuery, [departmentId], function(err,res){
         if (err) throw err;
-        console.log(`Successfully removed ${department}`);
+        console.log(`\r\nSuccessfully removed ${department}!\n`);
     });
 }
+
+//View employees by manager
+function viewEmpByMnger(){
+    inquirer.prompt([
+        {
+            type:"input",
+            name:"manager",
+            message:"Which manager do you want to view employee?"
+        }
+    ]).then(answer => {
+        let Query = "SELECT E1.id, E1.first_name, E1.last_name, title, name AS department, salary, concat(E2.first_name, ' ', E2.last_name) AS manager ";
+        Query += "FROM employee AS E1 LEFT JOIN roles ON E1.role_id = roles.id LEFT JOIN ";
+        Query += "department ON roles.department_id = department.id LEFT JOIN employee AS E2 ON E1.manager_id = E2.id AND concat(E2.first_name, ' ', E2.last_name) like ?;";
+
+        connection.query(Query, [answer.manager], function(err, res){
+            if(err) throw err;
+            if(res.affectedRows == 0)
+            {
+                //If there is no such manager or that employee is not manager of anyone
+                console.log(`No one has ${answer.manager} as manager`);
+            }
+            else
+            {
+                console.table(res);
+            }
+            start();
+        });
+    });
+};
